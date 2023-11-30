@@ -1,15 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 using AuctionService.Data;
 using AuctionService.DTOs;
 using AuctionService.Entities;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace AuctionService.Controllers
 {
@@ -28,14 +23,29 @@ namespace AuctionService.Controllers
 		}
 
 		[HttpGet]
-		public async Task<ActionResult<List<AuctionDto>>> GetAllAuctions()
+		public async Task<ActionResult<List<AuctionDto>>> GetAllAuctions(string date)
 		{
-			var auctions = await _context.Auctions
-							.Include(x => x.Item)
-							.OrderBy(x => x.Item.Make)
-							.ToListAsync();
+			//AsQueryable so that query will have IQueryable type
+			//so we can make more queries that we can if it had IOrderedQueryable type
+			var query = _context.Auctions.OrderBy(x => x.Item.Make).AsQueryable();
 
-			return _mapper.Map<List<AuctionDto>>(auctions);
+			if (!string.IsNullOrEmpty(date))
+			{
+				query = query.Where(x => x.UpdatedAt.CompareTo(DateTime.Parse(date).ToUniversalTime()) > 0);
+			}
+
+			// var auctions = await _context.Auctions
+			// 				.Include(x => x.Item)
+			// 				.OrderBy(x => x.Item.Make)
+			// 				.ToListAsync();
+
+			// return _mapper.Map<List<AuctionDto>>(auctions);
+
+			//ở trên là ToListAsync thành type list Auction rồi mới map vào Dto bằng Map
+			//ở dưới này là map type queryable vào Dto bằng ProjectTo rồi mới ToListAsync
+			//ConfigurationProvider để get mapping profile trong AutoMapper Service đã registered trong Program.cs
+			//more about ProjectTo: https://docs.automapper.org/en/stable/Queryable-Extensions.html
+			return await query.ProjectTo<AuctionDto>(_mapper.ConfigurationProvider).ToListAsync();
 		}
 
 		[HttpGet("{id}")]

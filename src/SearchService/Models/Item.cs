@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MongoDB.Entities;
 
-namespace AuctionService.DTOs
+namespace SearchService.Models
 {
-	public class AuctionDto
+	public class Item : Entity
 	{
-		//remove all default values and ?
-		//a DTO just should be a collection of properties effectively
-		public Guid Id { get; set; }
+		//không cần id vì đã có sẵn khi kế thừa class Entity
+		//read more at: https://mongodb-entities.com/api/MongoDB.Entities.Entity.html
 		public int ReservePrice { get; set; }
 		public string Seller { get; set; }
 		public string Winner { get; set; }
