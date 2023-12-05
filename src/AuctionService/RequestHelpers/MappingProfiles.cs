@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AuctionService.DTOs;
 using AuctionService.Entities;
 using AutoMapper;
+using Contracts;
 
 namespace AuctionService.RequestHelpers
 {
@@ -18,9 +19,14 @@ namespace AuctionService.RequestHelpers
 
 			//đọc thêm về ForMembers và MapFrom tại https://codelearn.io/sharing/su-dung-automapper-trong-csharp
 			//ở đây map nguyên cái CreateAuctionDto vào property Item của Auction
-			CreateMap<CreateAuctionDto, Auction>().
-				ForMember(destination => destination.Item, option => option.MapFrom(source => source));
+			CreateMap<CreateAuctionDto, Auction>()
+				.ForMember(destination => destination.Item, option => option.MapFrom(source => source));
+
 			CreateMap<CreateAuctionDto, Item>();
+			CreateMap<AuctionDto, AuctionCreated>();
+
+			CreateMap<Auction, AuctionUpdated>().IncludeMembers(x => x.Item);
+			CreateMap<Item, AuctionUpdated>();
 		}
 	}
 }
