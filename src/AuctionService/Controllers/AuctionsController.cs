@@ -5,6 +5,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Contracts;
 using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -66,12 +67,13 @@ namespace AuctionService.Controllers
 		}
 
 
+		[Authorize] //if anonymous users try to access this api they will get 401	
 		[HttpPost]
 		public async Task<ActionResult<AuctionDto>> CreateAuction(CreateAuctionDto auctionDto)
 		{
 			var auction = _mapper.Map<Auction>(auctionDto);
 			//TODO: add current user as Seller
-			auction.Seller = "test";
+			auction.Seller = User.Identity.Name; //with what we define in options of addjwtbearer(Program.cs), it will return the username of current user
 
 			_context.Auctions.Add(auction);
 
@@ -93,6 +95,7 @@ namespace AuctionService.Controllers
 			return CreatedAtAction(nameof(GetAuctionById), new { id = auction.Id }, newAuction);
 		}
 
+		[Authorize]
 		[HttpPut("{id}")]
 		public async Task<ActionResult> UpdateAuction(Guid id, UpdateAuctionDto updateAuctionDto)
 		{
@@ -101,6 +104,7 @@ namespace AuctionService.Controllers
 			if (auction == null) return NotFound();
 
 			//TODO: check seller == username
+			if (auction.Seller != User.Identity.Name) return Forbid();
 
 			//??  returns the value of its left-hand operand if it isn't nul and vice versa
 			auction.Item.Make = updateAuctionDto.Make ?? auction.Item.Make;
@@ -118,6 +122,7 @@ namespace AuctionService.Controllers
 			return Ok();
 		}
 
+		[Authorize]
 		[HttpDelete("{id}")]
 		public async Task<ActionResult> DeleteAuction(Guid id)
 		{
@@ -126,6 +131,8 @@ namespace AuctionService.Controllers
 			if (auction == null) return NotFound();
 
 			//TODO: check username == seller
+			if (auction.Seller != User.Identity.Name) return Forbid();
+
 			_context.Auctions.Remove(auction);
 
 			await _publishEndpoint.Publish<AuctionDeleted>(new { id = auction.Id.ToString() });

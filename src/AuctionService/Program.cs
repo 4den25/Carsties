@@ -1,6 +1,7 @@
 using AuctionService.Consumers;
 using AuctionService.Data;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -43,12 +44,23 @@ builder.Services.AddMassTransit(x =>
 		cfg.ConfigureEndpoints(context);
 	});
 });
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+	.AddJwtBearer(options => //pass the option we need for how we gonna validate this token from this resource server
+	{
+		//Authority tell the resource server who issues the token
+		//then it can use its configuration, etc... and it will take the token and validate it with identity server
+		options.Authority = builder.Configuration["IdentityServiceUrl"];
+		options.RequireHttpsMetadata = false; //cuz our identity server is running on http
+		options.TokenValidationParameters.ValidateAudience = false;
+		options.TokenValidationParameters.NameClaimType = "username"; //này để get value của username claim trong token (Username của user), dùng trong API controller
+	});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-
+//need to use this before UseAuthorization or we will get 401
+app.UseAuthentication();
 
 app.UseAuthorization();
 
