@@ -1,0 +1,56 @@
+//just a file to explain what is going on in appsettings.Development.json file
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Information"
+    }
+  },
+  "ReverseProxy": {
+    "Routes": {
+      "auctions": {
+        "ClusterId": "auctions",
+        "Match": {
+          "Path": "/auctions/{**catch-all}" //catch-all is the query
+        },
+        "Transforms": [
+          {
+            "PathPattern": "api/auctions/{**catch-all}" //if the path and clusterId match then access to this url
+          }
+        ]
+      },
+      "search": {
+        "ClusterId": "search",
+        "Match": {
+          "Path": "/search/{**catch-all}",
+          "Methods": [
+            //since searchService just has 1 api GET
+            "GET"
+          ]
+        },
+        "Transforms": [
+          {
+            "PathPattern": "api/search/{**catch-all}"
+          }
+        ]
+      }
+    },
+    "Clusters": {
+      "auctions": {
+        //here need to match ClusterId
+        "Destinations": {
+          "auctionApi": {
+            "Address": "http://localhost:7001" //url of the service
+          }
+        }
+      },
+      "search": {
+        "Destinations": {
+          "searchApi": {
+            "Address": "http://localhost:7002"
+          }
+        }
+      }
+    }
+  }
+}

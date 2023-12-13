@@ -1,4 +1,5 @@
-﻿using Duende.IdentityServer.Models;
+﻿using System.Runtime.Intrinsics.Arm;
+using Duende.IdentityServer.Models;
 
 namespace IdentityService;
 
@@ -36,6 +37,17 @@ public static class Config
 				ClientSecrets = new[] {new Secret("NotASecret".Sha256())},
 				//the password is the authentication flow that allow us to request the token from identity server
 				AllowedGrantTypes = {GrantType.ResourceOwnerPassword}
+			},
+			new Client
+			{
+				ClientId = "nextApp",
+				ClientName = "nextApp",
+				ClientSecrets = {new Secret("secret".Sha256())},
+				AllowedGrantTypes = GrantTypes.CodeAndClientCredentials,
+				RequirePkce = false,
+				RedirectUris = {"http://localhost:3000/api/auth/callback/id-server"},
+				AllowedScopes = {"openid", "profile", "auctionApp"},
+				AccessTokenLifetime = 3600*24*30 //set token lifetime to 1 month
 			}
 		};
 }
