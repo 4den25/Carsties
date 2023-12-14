@@ -33,6 +33,11 @@ builder.Services.AddMassTransit(x =>
 
 	x.UsingRabbitMq((context, cfg) =>
 	{
+		cfg.Host(builder.Configuration["RabbitMq:Host"], "/", host =>
+		{
+			host.Username(builder.Configuration.GetValue("RabbitMq:Username", "guest"));
+			host.Password(builder.Configuration.GetValue("RabbitMq:Password", "guest"));
+		});
 		//config retry policy cho riêng AuctionCreatedConsumer của queue search-auction-created
 		//read more at: https://masstransit.io/documentation/configuration/consumers
 		cfg.ReceiveEndpoint("search-auction-created", e =>
