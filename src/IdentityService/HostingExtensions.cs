@@ -29,6 +29,13 @@ internal static class HostingExtensions
 				options.Events.RaiseFailureEvents = true;
 				options.Events.RaiseSuccessEvents = true;
 
+				//chạy trên docker thì IssuerUrl nó sẽ khác, 
+				//nên cần config lại để validate được Issuer trong token
+				if (builder.Environment.IsEnvironment("Docker"))
+				{
+					options.IssuerUri = "identity-svc";
+				}
+
 				// see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
 				// options.EmitStaticAudienceClaim = true;
 			})
